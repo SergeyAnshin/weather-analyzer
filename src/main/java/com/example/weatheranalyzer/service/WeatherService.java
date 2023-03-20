@@ -1,5 +1,6 @@
 package com.example.weatheranalyzer.service;
 
+import com.example.weatheranalyzer.dto.CurrentWeatherResponse;
 import com.example.weatheranalyzer.dto.WeatherApiResponseBody;
 import com.example.weatheranalyzer.entity.Location;
 import com.example.weatheranalyzer.entity.Weather;
@@ -47,5 +48,11 @@ public class WeatherService {
                 .bodyToMono(WeatherApiResponseBody.class)
                 .block();
         save(weatherApiResponseBody);
+    }
+
+    public CurrentWeatherResponse getCurrentWeather() {
+        Weather currentWeather = weatherRepository.findTopByLocationCityOrderByCreateDateDesc(realtimeApiQueryParamValue)
+                .orElseThrow();
+        return weatherMapper.weatherToCurrentWeatherResponse(currentWeather);
     }
 }

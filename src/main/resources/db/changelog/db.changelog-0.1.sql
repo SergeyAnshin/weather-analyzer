@@ -33,3 +33,11 @@ ALTER TABLE weather ADD CONSTRAINT fk_weather_location_id FOREIGN KEY (location_
 --changeset SergeyAnshin:add-fk-weather-weather-condition-id
 ALTER TABLE weather ADD CONSTRAINT fk_weather_weather_condition_id FOREIGN KEY (weather_condition_id)
     REFERENCES weather_condition (weather_condition_id);
+
+--changeset SergeyAnshin:add-create-and-update-date-columns
+ALTER TABLE location ADD create_date DATETIME;
+ALTER TABLE location ADD update_date DATETIME;
+ALTER TABLE weather_condition ADD create_date DATETIME;
+ALTER TABLE weather_condition ADD update_date DATETIME;
+ALTER TABLE weather ADD create_date DATETIME;
+ALTER TABLE weather ADD update_date DATETIME;

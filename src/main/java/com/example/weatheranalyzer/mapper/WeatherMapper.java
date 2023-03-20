@@ -1,5 +1,6 @@
 package com.example.weatheranalyzer.mapper;
 
+import com.example.weatheranalyzer.dto.CurrentWeatherResponse;
 import com.example.weatheranalyzer.dto.WeatherApiResponseBody;
 import com.example.weatheranalyzer.entity.Weather;
 import org.mapstruct.DecoratedWith;
@@ -22,4 +23,6 @@ public interface WeatherMapper {
             @Mapping(target = "location.city", source = "location.name"),
     })
     Weather responseBodyToWeather(WeatherApiResponseBody weatherApiResponseBody);
+
+    CurrentWeatherResponse weatherToCurrentWeatherResponse(Weather weather);
 }
