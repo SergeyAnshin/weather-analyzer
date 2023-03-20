@@ -48,4 +48,8 @@ public class WeatherService {
                 .block();
         save(weatherApiResponseBody);
     }
+
+    public Weather getCurrentWeather() {
+        return weatherRepository.findTopByLocationCityOrderByCreateDateDesc(realtimeApiQueryParamValue).orElseThrow();
+    }
 }
