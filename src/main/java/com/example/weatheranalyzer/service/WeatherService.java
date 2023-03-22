@@ -4,28 +4,35 @@ import com.example.weatheranalyzer.dto.CurrentWeatherResponse;
 import com.example.weatheranalyzer.dto.WeatherApiResponseBody;
 import com.example.weatheranalyzer.entity.Location;
 import com.example.weatheranalyzer.entity.Weather;
+import com.example.weatheranalyzer.exception.CriticalApplicationException;
+import com.example.weatheranalyzer.exception.WeatherApiErrorHandler;
 import com.example.weatheranalyzer.mapper.WeatherMapper;
 import com.example.weatheranalyzer.repository.WeatherRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WeatherService {
-    @Value("${webclient.weather-api.realtime-api.query-param.name}")
-    private String realtimeApiQueryParamName;
-    @Value("${webclient.weather-api.realtime-api.query-param.value}")
-    private String realtimeApiQueryParamValue;
+    @Value("${webclient.weather-api.realtime-api.query-param.city}")
+    private String city;
+    @Value("${webclient.weather-api.realtime-api.base-url}")
+    private String realtimeWeatherApiBaseUrl;
+    @Value("${webclient.weather-api.api-key}")
+    private String apiKey;
     private final LocationService locationService;
     private final WeatherRepository weatherRepository;
     private final WeatherMapper weatherMapper;
-    private final WebClient webClient;
+    private final WeatherApiErrorHandler weatherApiErrorHandler;
 
     public void save(WeatherApiResponseBody weatherApiResponseBody) {
         Weather currentWeather = weatherMapper.responseBodyToWeather(weatherApiResponseBody);
@@ -42,16 +49,25 @@ public class WeatherService {
 
     @Scheduled(cron = "${weather-fetching-schedule}")
     private void fetchCurrentWeather() {
-        WeatherApiResponseBody weatherApiResponseBody = webClient.get()
-                .uri(uriBuilder -> uriBuilder.queryParam(realtimeApiQueryParamName, realtimeApiQueryParamValue).build())
-                .retrieve()
-                .bodyToMono(WeatherApiResponseBody.class)
-                .block();
-        save(weatherApiResponseBody);
+        try {
+            WeatherApiResponseBody weatherApiResponseBody = new RestTemplateBuilder()
+                    .build()
+                    .getForEntity(realtimeWeatherApiBaseUrl.concat("?q={city}&key={key}&aqi=no"),
+                            WeatherApiResponseBody.class, city, apiKey)
+                    .getBody();
+            save(weatherApiResponseBody);
+        } catch (HttpStatusCodeException exception) {
+            try {
+                weatherApiErrorHandler.handleError(exception);
+            } catch (CriticalApplicationException e) {
+                log.error(e.getMessage());
+                System.exit(0);
+            }
+        }
     }
 
     public CurrentWeatherResponse getCurrentWeather() {
-        Weather currentWeather = weatherRepository.findTopByLocationCityOrderByCreateDateDesc(realtimeApiQueryParamValue)
+        Weather currentWeather = weatherRepository.findTopByLocationCityOrderByCreateDateDesc(city)
                 .orElseThrow();
         return weatherMapper.weatherToCurrentWeatherResponse(currentWeather);
     }
