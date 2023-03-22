@@ -4,6 +4,7 @@ import com.example.weatheranalyzer.entity.Location;
 import com.example.weatheranalyzer.repository.LocationRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class LocationService {
         return locationRepository.findByCity(name);
     }
 
+    @CachePut(value = "locations", key = "#location.city")
     public Location save(Location location) {
         return locationRepository.save(location);
     }
