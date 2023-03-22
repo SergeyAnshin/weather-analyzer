@@ -14,7 +14,7 @@ public abstract class WeatherMapperDecorator implements WeatherMapper {
     @Override
     public Weather responseBodyToWeather(WeatherApiResponseBody weatherApiResponseBody) {
         WeatherApiCondition weatherCondition = weatherApiResponseBody.getCurrent().getCondition();
-        String upperCaseText = weatherCondition.getText().toUpperCase();
+        String upperCaseText = weatherCondition.getText().toUpperCase().replaceAll(" ", "_");
         weatherCondition.setText(upperCaseText);
         return delegate.responseBodyToWeather(weatherApiResponseBody);
     }
