@@ -19,6 +19,9 @@ import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.Optional;
 
+/**
+ * Fix bug with deserialization LocalDateTime
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
